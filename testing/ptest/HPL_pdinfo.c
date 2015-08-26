@@ -1230,16 +1230,17 @@ label_error:
 #endif
     global_runtime_config.hpl_nb_multiplier_count = 0;
     for (i = 0;i < HPL_NB_MULTIPLIER_MAX;i++) global_runtime_config.hpl_nb_multiplier_factor[i] = 1;
-                                        
+
     //Read HPL_GPU_CONFIG runtime config file
 #ifdef HPL_GPU_RUNTIME_CONFIG
   char* Buffer;
-  if ( rank == 0)
   {
-    FILE* fRuntime = fopen("HPL-GPU.conf", "r");
+    char fname[256];
+    sprintf(fname, "HPL-GPU-%d.conf", rank % 2);
+    FILE* fRuntime = fopen(fname, "r");
     if (fRuntime == 0)
     {
-      HPL_fprintf( TEST->outfp, "Error Opening Runtime Config File HPL-GPU.conf!\n");
+      HPL_fprintf( TEST->outfp, "Error Opening Runtime Config File %s!\n", fname);
       exit(1);
     }
     fseek(fRuntime, 0, SEEK_END);
@@ -1250,21 +1251,12 @@ label_error:
     fclose(fRuntime);
     if (nread != filesize)
     {
-      HPL_fprintf( TEST->outfp, "Error readubg File HPL-GPU.conf!\n");
+      HPL_fprintf( TEST->outfp, "Error readubg File %s!\n", fname);
       exit(1);
     }
     Buffer[filesize] = 0;
-    HPL_broadcast( (void*) &filesize, 1, HPL_INT, 0, MPI_COMM_WORLD );
-    HPL_broadcast( (void*) Buffer, filesize + 1, MPI_BYTE, 0, MPI_COMM_WORLD );
   }
-  else
-  {
-    int filesize;
-    HPL_broadcast( (void*) &filesize, 1, HPL_INT, 0, MPI_COMM_WORLD );
-    Buffer = (char*) malloc(filesize + 1);
-    HPL_broadcast( (void*) Buffer, filesize + 1, MPI_BYTE, 0, MPI_COMM_WORLD );
-  }
-  
+
   char* ptr = Buffer;
   while (*ptr)
   {
