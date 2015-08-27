@@ -41,6 +41,7 @@
 #include <cstdlib>
 #include <cstdio>
 #include <sched.h>
+#include <mpi.h>
 
 #include "glibc_hacks.h"
 
@@ -120,6 +121,14 @@ namespace
 			}
 			if (found) continue;
 #endif
+#if 1
+                        {
+                            int rank;
+                            MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+                            if ((i / 6) != (rank % 2)) continue;
+                        }
+#endif
+
 			CPU_SET(i, &fullMask);
 			num_cores_yet++;
 #ifdef HPL_NUM_LASWP_CORES
